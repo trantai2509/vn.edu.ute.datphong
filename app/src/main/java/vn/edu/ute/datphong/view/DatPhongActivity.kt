@@ -14,6 +14,7 @@ import androidx.core.widget.doAfterTextChanged
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import vn.edu.ute.datphong.helper.KiemTraHelper
+import vn.edu.ute.datphong.helper.dinhDangTien
 
 class DatPhongActivity : AppCompatActivity() {
 
@@ -68,14 +69,14 @@ class DatPhongActivity : AppCompatActivity() {
     }
 
     private fun hienThiLoaiPhong() {
-        txtLoaiPhong.text = "${loaiPhongDangChon.ten} - Giá: ${loaiPhongDangChon.giaMotDem}"
+        txtLoaiPhong.text = "${loaiPhongDangChon.ten} - Giá: ${loaiPhongDangChon.giaMotDem.dinhDangTien()}"
     }
 
     private fun capNhatTamTinh() {
         val soDem = edtSoDem.text?.toString()?.trim()?.toIntOrNull() ?: 0
         val soKhach = edtSoKhach.text?.toString()?.trim()?.toIntOrNull() ?: 0
         val tien = DatPhongHelper.tinhTienPhong_23115053122139(loaiPhongDangChon, soDem, soKhach)
-        txtTamTinh.text = "Tạm tính: $tien"
+        txtTamTinh.text = "Tạm tính: ${tien.dinhDangTien()}"
     }
 
     private fun xuLyDatPhong() {
