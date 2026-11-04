@@ -1,5 +1,6 @@
 package vn.edu.ute.datphong.view
 
+import android.app.Activity
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +17,7 @@ import com.google.android.material.snackbar.Snackbar
 import vn.edu.ute.datphong.helper.KiemTraHelper
 import vn.edu.ute.datphong.helper.dinhDangTien
 import android.content.Intent
+import androidx.activity.result.contract.ActivityResultContracts
 import vn.edu.ute.datphong.model.DonDatPhong
 class DatPhongActivity : AppCompatActivity() {
 
@@ -35,18 +37,82 @@ class DatPhongActivity : AppCompatActivity() {
 
     private lateinit var txtLoaiPhong: TextView
     private lateinit var txtTamTinh: TextView
+    private lateinit var btnChonPhong: MaterialButton
     private lateinit var btnDatPhong: MaterialButton
 
     private var loaiPhongDangChon: LoaiPhong = DuLieuMau.dsLoaiPhong[0]
 
+    private val chonPhongLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val maMoi = result.data?.getStringExtra("ma_loai_phong")
+            if (maMoi != null) {
+                DatPhongHelper.timLoaiPhong(maMoi)?.let {
+                    loaiPhongDangChon = it
+                    hienThiLoaiPhong()
+                    capNhatTamTinh()
+                }
+            }
+        }
+    }
+    private val xacNhanLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val maDon = result.data?.getStringExtra("ma_don") ?: ""
+            Snackbar.make(btnDatPhong, "Đặt phòng thành công - Mã đơn: $maDon", Snackbar.LENGTH_LONG).show()
+            xoaTrangForm()
+        }
+    }
+    private fun xoaTrangForm() {
+        edtHoTen.setText("")
+        edtSdt.setText("")
+        edtEmail.setText("")
+        edtNgayNhan.setText("")
+        edtSoDem.setText("")
+        edtSoKhach.setText("")
+        tilHoTen.error = null
+        tilSdt.error = null
+        tilEmail.error = null
+        tilNgayNhan.error = null
+        tilSoDem.error = null
+        tilSoKhach.error = null
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dat_phong)
+
+        val maLuu = savedInstanceState?.getString("MA_LOAI_PHONG_LUU")
+        if (maLuu != null) {
+            DatPhongHelper.timLoaiPhong(maLuu)?.let {
+                loaiPhongDangChon = it
+            }
+        }
+
         anhXaView()
         hienThiLoaiPhong()
+        capNhatTamTinh()
+
         edtSoDem.doAfterTextChanged { capNhatTamTinh() }
         edtSoKhach.doAfterTextChanged { capNhatTamTinh() }
-        btnDatPhong.setOnClickListener { xuLyDatPhong() }
+
+        btnChonPhong.setOnClickListener {
+            val soKhach = edtSoKhach.text?.toString()?.trim()?.toIntOrNull() ?: 1
+            val intent = Intent(this, ChonPhongActivity::class.java)
+            intent.putExtra("so_khach", soKhach)
+            chonPhongLauncher.launch(intent)
+        }
+
+        btnDatPhong.setOnClickListener {
+            xuLyDatPhong()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("MA_LOAI_PHONG_LUU", loaiPhongDangChon.ma)
     }
 
     private fun anhXaView() {
@@ -66,6 +132,7 @@ class DatPhongActivity : AppCompatActivity() {
 
         txtLoaiPhong = findViewById(R.id.txtLoaiPhong)
         txtTamTinh = findViewById(R.id.txtTamTinh)
+        btnChonPhong = findViewById(R.id.btnChonPhong)
         btnDatPhong = findViewById(R.id.btnDatPhong)
     }
 
@@ -77,7 +144,7 @@ class DatPhongActivity : AppCompatActivity() {
         val soDem = edtSoDem.text?.toString()?.trim()?.toIntOrNull() ?: 0
         val soKhach = edtSoKhach.text?.toString()?.trim()?.toIntOrNull() ?: 0
         val tien = DatPhongHelper.tinhTienPhong_23115053122139(loaiPhongDangChon, soDem, soKhach)
-        txtTamTinh.text = "Tạm tính: ${tien.dinhDangTien()}"
+        txtTamTinh.text = if (tien == 0L) "Tạm tính: 0" else "Tạm tính: ${tien.dinhDangTien()}"
     }
 
     private fun xuLyDatPhong() {
@@ -91,7 +158,7 @@ class DatPhongActivity : AppCompatActivity() {
         var hopLe = true
 
         if (!KiemTraHelper.kiemTraHoTen(hoTen)) {
-            tilHoTen.error = "Họ tên không hợp lệ (ít nhất 2 từ)"
+            tilHoTen.error = "Họ tên không hợp lệ"
             hopLe = false
         } else tilHoTen.error = null
 
@@ -101,12 +168,12 @@ class DatPhongActivity : AppCompatActivity() {
         } else tilSdt.error = null
 
         if (!KiemTraHelper.kiemTraEmail(email)) {
-            tilEmail.error = "Email phải có đuôi @ute.udn.vn"
+            tilEmail.error = "Email phải đúng định dạng @ute.udn.vn"
             hopLe = false
         } else tilEmail.error = null
 
         if (!KiemTraHelper.kiemTraNgay(ngayNhan)) {
-            tilNgayNhan.error = "Ngày định dạng dd/MM/yyyy (2026-2029)"
+            tilNgayNhan.error = "Ngày nhận dạng dd/MM/yyyy (2026-2029)"
             hopLe = false
         } else tilNgayNhan.error = null
 
@@ -126,6 +193,9 @@ class DatPhongActivity : AppCompatActivity() {
             Snackbar.make(btnDatPhong, "Vui lòng kiểm tra lại thông tin", Snackbar.LENGTH_SHORT).show()
             return
         }
+
+        Toast.makeText(this, "Đã ghi nhận đơn đặt phòng của $hoTen", Toast.LENGTH_SHORT).show()
+
         val don = DonDatPhong(
             hoTen = hoTen,
             sdt = sdt,
@@ -139,8 +209,6 @@ class DatPhongActivity : AppCompatActivity() {
         val intent = Intent(this, XacNhanActivity::class.java)
         intent.putExtra("don_dat_phong", don)
         intent.putExtra("tong_tien", tongTien)
-        startActivity(intent)
-
-        Toast.makeText(this, "Đã ghi nhận đơn đặt phòng của $hoTen", Toast.LENGTH_SHORT).show()
+        xacNhanLauncher.launch(intent)
     }
 }
