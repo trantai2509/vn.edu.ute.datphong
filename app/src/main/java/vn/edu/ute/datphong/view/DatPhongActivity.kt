@@ -15,7 +15,8 @@ import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import vn.edu.ute.datphong.helper.KiemTraHelper
 import vn.edu.ute.datphong.helper.dinhDangTien
-
+import android.content.Intent
+import vn.edu.ute.datphong.model.DonDatPhong
 class DatPhongActivity : AppCompatActivity() {
 
     private lateinit var tilHoTen: TextInputLayout
@@ -125,6 +126,20 @@ class DatPhongActivity : AppCompatActivity() {
             Snackbar.make(btnDatPhong, "Vui lòng kiểm tra lại thông tin", Snackbar.LENGTH_SHORT).show()
             return
         }
+        val don = DonDatPhong(
+            hoTen = hoTen,
+            sdt = sdt,
+            email = email,
+            maLoaiPhong = loaiPhongDangChon.ma,
+            ngayNhan = ngayNhan,
+            soDem = soDem!!,
+            soKhach = soKhach!!
+        )
+        val tongTien = DatPhongHelper.tinhTienPhong_23115053122139(loaiPhongDangChon, soDem, soKhach)
+        val intent = Intent(this, XacNhanActivity::class.java)
+        intent.putExtra("don_dat_phong", don)
+        intent.putExtra("tong_tien", tongTien)
+        startActivity(intent)
 
         Toast.makeText(this, "Đã ghi nhận đơn đặt phòng của $hoTen", Toast.LENGTH_SHORT).show()
     }
