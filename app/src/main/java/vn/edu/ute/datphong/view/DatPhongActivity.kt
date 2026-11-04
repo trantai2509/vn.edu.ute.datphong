@@ -9,6 +9,8 @@ import com.google.android.material.textfield.TextInputLayout
 import vn.edu.ute.datphong.R
 import vn.edu.ute.datphong.data.DuLieuMau
 import vn.edu.ute.datphong.model.LoaiPhong
+import vn.edu.ute.datphong.helper.DatPhongHelper
+import androidx.core.widget.doAfterTextChanged
 
 class DatPhongActivity : AppCompatActivity() {
 
@@ -37,6 +39,8 @@ class DatPhongActivity : AppCompatActivity() {
         setContentView(R.layout.activity_dat_phong)
         anhXaView()
         hienThiLoaiPhong()
+        edtSoDem.doAfterTextChanged { capNhatTamTinh() }
+        edtSoKhach.doAfterTextChanged { capNhatTamTinh() }
     }
 
     private fun anhXaView() {
@@ -61,5 +65,12 @@ class DatPhongActivity : AppCompatActivity() {
 
     private fun hienThiLoaiPhong() {
         txtLoaiPhong.text = "${loaiPhongDangChon.ten} - Giá: ${loaiPhongDangChon.giaMotDem}"
+    }
+
+    private fun capNhatTamTinh() {
+        val soDem = edtSoDem.text?.toString()?.trim()?.toIntOrNull() ?: 0
+        val soKhach = edtSoKhach.text?.toString()?.trim()?.toIntOrNull() ?: 0
+        val tien = DatPhongHelper.tinhTienPhong_23115053122139(loaiPhongDangChon, soDem, soKhach)
+        txtTamTinh.text = "Tạm tính: $tien"
     }
 }
