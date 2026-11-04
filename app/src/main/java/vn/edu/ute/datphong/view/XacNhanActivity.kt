@@ -1,5 +1,7 @@
 package vn.edu.ute.datphong.view
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -39,6 +41,16 @@ class XacNhanActivity : AppCompatActivity() {
             txtSoDem.text = "Số đêm: ${don.soDem}"
             txtSoKhach.text = "Số khách: ${don.soKhach}"
             txtTongTien.text = "Tổng tiền: ${tongTien.dinhDangTien()}"
+        }
+        val btnXacNhan: MaterialButton = findViewById(R.id.btnXacNhan)
+        btnXacNhan.setOnClickListener {
+            if (don != null) {
+                val maDon = DatPhongHelper.taoMaDon(don)
+                val resultIntent = Intent()
+                resultIntent.putExtra("ma_don", maDon)
+                setResult(Activity.RESULT_OK, resultIntent)
+                finish()
+            }
         }
 
         btnSua.setOnClickListener {

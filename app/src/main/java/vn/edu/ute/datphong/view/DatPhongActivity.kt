@@ -56,6 +56,29 @@ class DatPhongActivity : AppCompatActivity() {
             }
         }
     }
+    private val xacNhanLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val maDon = result.data?.getStringExtra("ma_don") ?: ""
+            Snackbar.make(btnDatPhong, "Đặt phòng thành công - Mã đơn: $maDon", Snackbar.LENGTH_LONG).show()
+            xoaTrangForm()
+        }
+    }
+    private fun xoaTrangForm() {
+        edtHoTen.setText("")
+        edtSdt.setText("")
+        edtEmail.setText("")
+        edtNgayNhan.setText("")
+        edtSoDem.setText("")
+        edtSoKhach.setText("")
+        tilHoTen.error = null
+        tilSdt.error = null
+        tilEmail.error = null
+        tilNgayNhan.error = null
+        tilSoDem.error = null
+        tilSoKhach.error = null
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -186,6 +209,6 @@ class DatPhongActivity : AppCompatActivity() {
         val intent = Intent(this, XacNhanActivity::class.java)
         intent.putExtra("don_dat_phong", don)
         intent.putExtra("tong_tien", tongTien)
-        startActivity(intent)
+        xacNhanLauncher.launch(intent)
     }
 }
